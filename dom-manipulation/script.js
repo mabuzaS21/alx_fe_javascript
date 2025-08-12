@@ -17,9 +17,6 @@ function showRandomQuote() {
   `;
 }
 
-// Add event listener to the "Show New Quote" button
-document.getElementById('newQuote').addEventListener('click', showRandomQuote);
-
 // Function to add a new quote
 function addQuote() {
   const quoteTextInput = document.getElementById('newQuoteText');
@@ -36,7 +33,7 @@ function addQuote() {
   // Add the new quote to the array
   quotes.push({ text, category });
 
-  // Optional: Show the new quote immediately
+  // Show the new quote immediately
   showRandomQuote();
 
   // Clear the inputs
@@ -44,4 +41,40 @@ function addQuote() {
   quoteCategoryInput.value = '';
 }
 
-document.getElementById('addQuoteButton').addEventListener('click', addQuote);
+// Function to create and add the quote form dynamically
+function createAddQuoteForm() {
+  const formContainer = document.createElement('div');
+
+  const quoteInput = document.createElement('input');
+  quoteInput.id = 'newQuoteText';
+  quoteInput.type = 'text';
+  quoteInput.placeholder = 'Enter a new quote';
+
+  const categoryInput = document.createElement('input');
+  categoryInput.id = 'newQuoteCategory';
+  categoryInput.type = 'text';
+  categoryInput.placeholder = 'Enter quote category';
+
+  const addButton = document.createElement('button');
+  addButton.id = 'addQuoteButton';
+  addButton.textContent = 'Add Quote';
+
+  formContainer.appendChild(quoteInput);
+  formContainer.appendChild(categoryInput);
+  formContainer.appendChild(addButton);
+
+  // Append the form to the body (or you can append it somewhere specific)
+  document.body.appendChild(formContainer);
+
+  // Attach event listener to the new Add Quote button
+  addButton.addEventListener('click', addQuote);
+}
+
+// Event listener for the static Show New Quote button
+document.getElementById('newQuote').addEventListener('click', showRandomQuote);
+
+// On window load, create the add quote form and show a random quote
+window.onload = function() {
+  createAddQuoteForm();
+  showRandomQuote();
+};
