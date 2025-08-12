@@ -5,6 +5,21 @@ const quotes = [
   { text: "The best way to predict the future is to invent it.", category: "Innovation" }
 ];
 
+// Save quotes array to localStorage
+function saveQuotes() {
+  localStorage.setItem('quotes', JSON.stringify(quotes));
+}
+
+// Load quotes array from localStorage
+function loadQuotes() {
+  const storedQuotes = localStorage.getItem('quotes');
+  if (storedQuotes) {
+    const parsedQuotes = JSON.parse(storedQuotes);
+    quotes.length = 0; // Clear current quotes array
+    quotes.push(...parsedQuotes);
+  }
+}
+
 // Function to display a random quote
 function showRandomQuote() {
   const quoteDisplay = document.getElementById('quoteDisplay');
@@ -15,6 +30,9 @@ function showRandomQuote() {
     <p><strong>Quote:</strong> ${quote.text}</p>
     <p><strong>Category:</strong> ${quote.category}</p>
   `;
+
+  // Store last quote index in sessionStorage (optional)
+  sessionStorage.setItem('lastQuoteIndex', randomIndex);
 }
 
 // Function to add a new quote
@@ -30,18 +48,62 @@ function addQuote() {
     return;
   }
 
-  // Add the new quote to the array
   quotes.push({ text, category });
 
-  // Show the new quote immediately
+  saveQuotes(); // Save updated quotes to localStorage
+
   showRandomQuote();
 
-  // Clear the inputs
   quoteTextInput.value = '';
   quoteCategoryInput.value = '';
 }
 
-// Function to create and add the quote form dynamically
+// Function to export quotes as a JSON file
+function exportToJsonFile() {
+  const dataStr = JSON.stringify(quotes, null, 2);
+  const blob = new Blob([dataStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'quotes.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Function to import quotes from a JSON file
+function importFromJsonFile(event) {
+  const fileReader = new FileReader();
+  fileReader.onload = function(event) {
+    try {
+      const importedQuotes = JSON.parse(event.target.result);
+
+      if (!Array.isArray(importedQuotes)) {
+        alert('Invalid JSON format: Expected an array.');
+        return;
+      }
+
+      for (const q of importedQuotes) {
+        if (typeof q.text !== 'string' || typeof q.category !== 'string') {
+          alert('Invalid quote format in JSON.');
+          return;
+        }
+      }
+
+      quotes.push(...importedQuotes);
+      saveQuotes();
+      alert('Quotes imported successfully!');
+      showRandomQuote();
+    } catch (error) {
+      alert('Failed to import JSON: ' + error.message);
+    }
+  };
+  fileReader.readAsText(event.target.files[0]);
+}
+
+// Function to create and add the quote form and import/export controls
 function createAddQuoteForm() {
   const formContainer = document.createElement('div');
 
@@ -59,22 +121,36 @@ function createAddQuoteForm() {
   addButton.id = 'addQuoteButton';
   addButton.textContent = 'Add Quote';
 
+  const exportButton = document.createElement('button');
+  exportButton.id = 'exportButton';
+  exportButton.textContent = 'Export Quotes';
+
+  const importInput = document.createElement('input');
+  importInput.type = 'file';
+  importInput.id = 'importFile';
+  importInput.accept = '.json';
+
+  // Append elements to container
   formContainer.appendChild(quoteInput);
   formContainer.appendChild(categoryInput);
   formContainer.appendChild(addButton);
+  formContainer.appendChild(exportButton);
+  formContainer.appendChild(importInput);
 
-  // Append the form to the body (or you can append it somewhere specific)
   document.body.appendChild(formContainer);
 
-  // Attach event listener to the new Add Quote button
+  // Attach event listeners
   addButton.addEventListener('click', addQuote);
+  exportButton.addEventListener('click', exportToJsonFile);
+  importInput.addEventListener('change', importFromJsonFile);
 }
 
-// Event listener for the static Show New Quote button
+// Event listener for the static "Show New Quote" button
 document.getElementById('newQuote').addEventListener('click', showRandomQuote);
 
-// On window load, create the add quote form and show a random quote
+// On window load, setup the app
 window.onload = function() {
+  loadQuotes();
   createAddQuoteForm();
   showRandomQuote();
 };
