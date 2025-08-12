@@ -228,7 +228,7 @@ window.onload = function() {
 
 // === Step 1: Simulate Server Interaction ===
 
-async function fetchServerQuotes() {
+async function fetchQuotesFromServer() {
   try {
     const response = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=5');
     const serverData = await response.json();
