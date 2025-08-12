@@ -266,7 +266,6 @@ async function syncQuotesWithServer() {
     populateCategories(); // In case new category added
     console.log(`${addedCount} new server quote(s) added.`);
     alert(`${addedCount} new quote(s) synced from the server.`);
-    filterQuotes(); // Update UI with new quotes
   } else {
     console.log('No new server quotes to add.');
   }
