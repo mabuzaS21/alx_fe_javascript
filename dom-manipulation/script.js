@@ -201,8 +201,34 @@ function createAddQuoteForm() {
   addButton.addEventListener('click', addQuote);
 }
 
+// Initialize the app on page load
+window.onload = function() {
+  loadQuotes();
+  createAddQuoteForm();
+  populateCategories();
+
+  // Apply last selected filter and show filtered quote
+  filterQuotes();
+
+  document.getElementById('newQuote').addEventListener('click', showRandomQuote);
+  document.getElementById('exportButton').addEventListener('click', exportToJsonFile);
+  document.getElementById('importFile').addEventListener('change', importFromJsonFile);
+
+  // Add event listener for syncing local quotes to server
+  const syncButton = document.createElement('button');
+  syncButton.id = 'syncToServer';
+  syncButton.textContent = 'Sync Local Quotes to Server';
+  document.body.appendChild(syncButton);
+  syncButton.addEventListener('click', postQuotesToServer);
+
+  // Optional: Automatically sync every 5 minutes
+  setInterval(syncQuotesWithServer, 300000); // Fetch server quotes every 5 minutes
+  setInterval(postQuotesToServer, 300000);   // Post local quotes every 5 minutes
+};
+
 // === Step 1: Simulate Server Interaction ===
-async function fetchQuotesFromServer() {
+
+async function fetchServerQuotes() {
   try {
     const response = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=5');
     const serverData = await response.json();
@@ -221,10 +247,10 @@ async function fetchQuotesFromServer() {
   }
 }
 
-// === Task 3: Sync quotes with server avoiding duplicates ===
 async function syncQuotesWithServer() {
   const serverQuotes = await fetchServerQuotes();
 
+  // Check if any of these server quotes are new
   let addedCount = 0;
   const existingQuotesText = new Set(quotes.map(q => q.text));
 
@@ -237,28 +263,35 @@ async function syncQuotesWithServer() {
 
   if (addedCount > 0) {
     saveQuotes();
-    populateCategories(); // Update dropdown if new category added
-    filterQuotes();       // Show quotes after sync
+    populateCategories(); // In case new category added
     console.log(`${addedCount} new server quote(s) added.`);
     alert(`${addedCount} new quote(s) synced from the server.`);
+    filterQuotes(); // Update UI with new quotes
   } else {
     console.log('No new server quotes to add.');
   }
 }
 
-// Initialize the app on page load
-window.onload = function() {
-  loadQuotes();
-  createAddQuoteForm();
-  populateCategories();
+// === Step 2: POST local quotes to server simulation ===
+async function postQuotesToServer() {
+  try {
+    const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(quotes)
+    });
 
-  // Apply last selected filter and show filtered quote
-  filterQuotes();
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
 
-  document.getElementById('newQuote').addEventListener('click', showRandomQuote);
-  document.getElementById('exportButton').addEventListener('click', exportToJsonFile);
-  document.getElementById('importFile').addEventListener('change', importFromJsonFile);
-
-  // Call sync with server on load (Task 3)
-  syncQuotesWithServer();
-};
+    const responseData = await response.json();
+    console.log('Quotes successfully posted to server:', responseData);
+    alert('Local quotes synced to the server successfully!');
+  } catch (error) {
+    console.error('Failed to post quotes to server:', error);
+    alert('Error syncing quotes to the server.');
+  }
+}
