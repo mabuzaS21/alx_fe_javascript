@@ -31,7 +31,7 @@ function showRandomQuote() {
     <p><strong>Category:</strong> ${quote.category}</p>
   `;
 
-  // Store last quote index in sessionStorage (optional)
+  // Optional: Store last quote index in sessionStorage
   sessionStorage.setItem('lastQuoteIndex', randomIndex);
 }
 
@@ -103,7 +103,7 @@ function importFromJsonFile(event) {
   fileReader.readAsText(event.target.files[0]);
 }
 
-// Function to create and add the quote form and import/export controls
+// Function to create and add the quote form (dynamically)
 function createAddQuoteForm() {
   const formContainer = document.createElement('div');
 
@@ -121,36 +121,23 @@ function createAddQuoteForm() {
   addButton.id = 'addQuoteButton';
   addButton.textContent = 'Add Quote';
 
-  const exportButton = document.createElement('button');
-  exportButton.id = 'exportButton';
-  exportButton.textContent = 'Export Quotes';
-
-  const importInput = document.createElement('input');
-  importInput.type = 'file';
-  importInput.id = 'importFile';
-  importInput.accept = '.json';
-
-  // Append elements to container
   formContainer.appendChild(quoteInput);
   formContainer.appendChild(categoryInput);
   formContainer.appendChild(addButton);
-  formContainer.appendChild(exportButton);
-  formContainer.appendChild(importInput);
 
   document.body.appendChild(formContainer);
 
-  // Attach event listeners
   addButton.addEventListener('click', addQuote);
-  exportButton.addEventListener('click', exportToJsonFile);
-  importInput.addEventListener('change', importFromJsonFile);
 }
 
-// Event listener for the static "Show New Quote" button
-document.getElementById('newQuote').addEventListener('click', showRandomQuote);
-
-// On window load, setup the app
+// Setup app on page load
 window.onload = function() {
   loadQuotes();
   createAddQuoteForm();
   showRandomQuote();
+
+  // Attach event listeners to static HTML buttons
+  document.getElementById('newQuote').addEventListener('click', showRandomQuote);
+  document.getElementById('exportButton').addEventListener('click', exportToJsonFile);
+  document.getElementById('importFile').addEventListener('change', importFromJsonFile);
 };
