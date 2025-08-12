@@ -201,6 +201,51 @@ function createAddQuoteForm() {
   addButton.addEventListener('click', addQuote);
 }
 
+// === Step 1: Simulate Server Interaction ===
+async function fetchServerQuotes() {
+  try {
+    const response = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=5');
+    const serverData = await response.json();
+
+    const serverQuotes = serverData.map(item => ({
+      id: item.id.toString(),
+      text: item.title,
+      category: 'Server'  // Hardcoded category
+    }));
+
+    console.log('Fetched server quotes:', serverQuotes);
+    return serverQuotes;
+  } catch (error) {
+    console.error('Failed to fetch server quotes:', error);
+    return [];
+  }
+}
+
+// === Task 3: Sync quotes with server avoiding duplicates ===
+async function syncQuotesWithServer() {
+  const serverQuotes = await fetchServerQuotes();
+
+  let addedCount = 0;
+  const existingQuotesText = new Set(quotes.map(q => q.text));
+
+  for (const quote of serverQuotes) {
+    if (!existingQuotesText.has(quote.text)) {
+      quotes.push(quote);
+      addedCount++;
+    }
+  }
+
+  if (addedCount > 0) {
+    saveQuotes();
+    populateCategories(); // Update dropdown if new category added
+    filterQuotes();       // Show quotes after sync
+    console.log(`${addedCount} new server quote(s) added.`);
+    alert(`${addedCount} new quote(s) synced from the server.`);
+  } else {
+    console.log('No new server quotes to add.');
+  }
+}
+
 // Initialize the app on page load
 window.onload = function() {
   loadQuotes();
@@ -213,4 +258,7 @@ window.onload = function() {
   document.getElementById('newQuote').addEventListener('click', showRandomQuote);
   document.getElementById('exportButton').addEventListener('click', exportToJsonFile);
   document.getElementById('importFile').addEventListener('change', importFromJsonFile);
+
+  // Call sync with server on load (Task 3)
+  syncQuotesWithServer();
 };
